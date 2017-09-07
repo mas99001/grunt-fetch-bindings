@@ -6,6 +6,7 @@
  * Licensed under the MIT license.
  */
 'use strict';
+var fs = require('fs');
 module.exports = function(grunt) {
     // Please see the Grunt documentation for more information regarding task
     // creation: http://gruntjs.com/creating-tasks
@@ -17,10 +18,11 @@ module.exports = function(grunt) {
             dest: "dist/",
             bindname: "contentData"
         });
-        console.log('\x1b[45m%s\x1b[0m', 'dest:= ' + options.dest);
-        console.log('\x1b[45m%s\x1b[0m', 'src:= ' + options.src);
-        console.log('\x1b[45m%s\x1b[0m', 'wildcard:= ' + options.wildcard);
-        console.log('\x1b[45m%s\x1b[0m', 'bindname:= ' + options.bindname);
+        console.log(); 
+        console.log('\x1b[36m%s\x1b[0m', 'dest:= ' + options.dest);
+        console.log('\x1b[36m%s\x1b[0m', 'src:= ' + options.src);
+        console.log('\x1b[36m%s\x1b[0m', 'wildcard:= ' + options.wildcard);
+        console.log('\x1b[36m%s\x1b[0m', 'bindname:= ' + options.bindname);
         var lastChar = options.dest.substr(-1);
         if (lastChar != '/') {
             options.dest = options.dest + '/';
@@ -29,10 +31,11 @@ module.exports = function(grunt) {
         if (lastChar == '/') {
             options.src = options.src.slice(0, -1);
         }
-        console.log('\x1b[45m%s\x1b[0m', 'dest:= ' + options.dest);
-        console.log('\x1b[45m%s\x1b[0m', 'src:= ' + options.src);
-        console.log('\x1b[45m%s\x1b[0m', 'wildcard:= ' + options.wildcard);
-        console.log('\x1b[45m%s\x1b[0m', 'bindname:= ' + options.bindname);
+        console.log(); 
+        console.log('\x1b[36m%s\x1b[0m', 'dest:= ' + options.dest);
+        console.log('\x1b[36m%s\x1b[0m', 'src:= ' + options.src);
+        console.log('\x1b[36m%s\x1b[0m', 'wildcard:= ' + options.wildcard);
+        console.log('\x1b[36m%s\x1b[0m', 'bindname:= ' + options.bindname);
         var wc = ".";
         var filelist = [];
 
@@ -62,41 +65,56 @@ module.exports = function(grunt) {
             });
         };
 
+        var isEven = function(n) {
+            var nin = Number(n);
+            return nin === 0 || !!(nin && !(nin%2));
+        }
+        var isOdd = function(n) {
+            return isEven(Number(n) + 1);
+        }
         var lCreateDirs = function(path){
+            console.log(); 
             var pathArray = path.split('/');
             var pEle = '';
             pathArray.forEach(function(ele){
                 pEle += ele + '/';
-                console.log('\x1b[45m%s\x1b[0m', pEle);
+                console.log('\x1b[36m%s\x1b[0m', pEle);
                 if(!fs.existsSync(pEle))
                     fs.mkdirSync(pEle);
             });
         }
 
         var collectBindnames = function() {
+            console.log(); 
             console.log('\x1b[32m%s\x1b[0m', "Begining collectBindnames");
+            if(!fs.existsSync(options.dest))
+                lCreateDirs(options.dest.slice(0, -1));
+            console.log('\x1b[36m%s\x1b[0m', '{');
             filelist.forEach(function(element) {
-              console.log('\x1b[36m%s\x1b[0m', element);
-              var filename = element.replace(/^.*[\\\/]/, '')
-              console.log(filename);
+                var filename = element.replace(/^.*[\\\/]/, '')
+                console.log('"' + filename.split(".")[0] + '":');
                 var sourceHtml = fs.readFileSync(element, 'utf8');
                 var sourceHtmlgArray = sourceHtml.split(options.bindname);
-                if(!fs.existsSync(options.dest))
-                    lCreateDirs(options.dest.slice(0, -1));
                 var index = 0;
-                var splitIndex = 0;
+                // var splitIndex = 0;
+                console.log('\x1b[36m\t%s\x1b[0m', '"keys":[');
                 sourceHtmlgArray.forEach(function(ele){
-                    if(isOdd(index)){
-                      splitIndex += 1;
-                      console.log("Index: " + index);
-                      console.log("splitIndex: " + splitIndex);
-                      fs.writeFileSync(options.dest+filename.replace(".html", "_" + splitIndex + ".html"), sourceHtmlgArray[index], 'utf-8');
+                    if(index !== 0){
+                        // splitIndex += 1;
+                        console.log("\t\t" + options.bindname + ": " + sourceHtmlgArray[index].split("}}")[0].split(".")[1]);
+                        // console.log("splitIndex: " + splitIndex);
+                        //fs.writeFileSync(options.dest+filename.replace(".html", "_" + splitIndex + ".html"), sourceHtmlgArray[index], 'utf-8');
                     }
                     index += 1;
                 })
+                console.log('\x1b[36m\t%s\x1b[0m', ']');
+                console.log('\x1b[36m\t%s\x1b[0m', '"angularhtml": ' + element);                
             }, this);
+            console.log('\x1b[36m%s\x1b[0m', '}');
+            
         };
 
+        console.log(); 
         switch(options.wildcard) {
             case '*.*':       wc = ".";     walk(options.src);          break;
             case '*.html':    wc = ".html"; walk(options.src);          break;
@@ -107,7 +125,8 @@ module.exports = function(grunt) {
             case '**/*.js':   wc = ".js";   walkRecursive(options.src); break;
             default:          wc = ".";     walk(options.src);
         }
-        console.log('\x1b[36m%s', 'Following are the files: '); 
+        console.log(); 
+        console.log('\x1b[35m%s', 'Following are the files: '); 
         console.log(filelist);
         collectBindnames();
     });
