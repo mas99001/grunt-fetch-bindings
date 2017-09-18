@@ -18,24 +18,21 @@ module.exports = function(grunt) {
             dest: "dist/",
             bindname: "contentData"
         });
-        console.log(); 
-        console.log('\x1b[36m%s\x1b[0m', 'dest:= ' + options.dest);
-        console.log('\x1b[36m%s\x1b[0m', 'src:= ' + options.src);
-        console.log('\x1b[36m%s\x1b[0m', 'wildcard:= ' + options.wildcard);
-        console.log('\x1b[36m%s\x1b[0m', 'bindname:= ' + options.bindname);
         var lastChar = options.dest.substr(-1);
+        //add trailing forward slash in dest
         if (lastChar != '/') {
             options.dest = options.dest + '/';
         }
+        //no trailing forward slash in src
         lastChar = options.src.substr(-1);
         if (lastChar == '/') {
             options.src = options.src.slice(0, -1);
         }
         console.log(); 
-        console.log('\x1b[36m%s\x1b[0m', 'dest:= ' + options.dest);
-        console.log('\x1b[36m%s\x1b[0m', 'src:= ' + options.src);
-        console.log('\x1b[36m%s\x1b[0m', 'wildcard:= ' + options.wildcard);
-        console.log('\x1b[36m%s\x1b[0m', 'bindname:= ' + options.bindname);
+        console.log('\x1b[36m%s\x1b[0m', 'Source Folder:= ' + options.src);
+        console.log('\x1b[36m%s\x1b[0m', 'Destination Folder:= ' + options.dest);
+        console.log('\x1b[36m%s\x1b[0m', 'Files filter:= ' + options.wildcard);
+        console.log('\x1b[36m%s\x1b[0m', 'Binding name:= ' + options.bindname);
         var wc = ".";
         var filelist = [];
 
@@ -65,13 +62,6 @@ module.exports = function(grunt) {
             });
         };
 
-        var isEven = function(n) {
-            var nin = Number(n);
-            return nin === 0 || !!(nin && !(nin%2));
-        }
-        var isOdd = function(n) {
-            return isEven(Number(n) + 1);
-        }
         var lCreateDirs = function(path){
             console.log(); 
             var pathArray = path.split('/');
@@ -85,48 +75,40 @@ module.exports = function(grunt) {
         }
 
         var collectBindnames = function() {
-            console.log(); 
-            console.log('\x1b[32m%s\x1b[0m', "Begining collectBindnames");
             if(!fs.existsSync(options.dest))
                 lCreateDirs(options.dest.slice(0, -1));
-            console.log('\x1b[36m%s\x1b[0m', '{');
+            var bindings = {};
             filelist.forEach(function(element) {
                 var filename = element.replace(/^.*[\\\/]/, '')
-                console.log('"' + filename.split(".")[0] + '":');
                 var sourceHtml = fs.readFileSync(element, 'utf8');
                 var sourceHtmlgArray = sourceHtml.split(options.bindname);
                 var index = 0;
-                // var splitIndex = 0;
-                console.log('\x1b[36m\t%s\x1b[0m', '"keys":[');
+                bindings[filename.split(".")[0]]={
+                    "keys": [],
+                    "angularhtml": element
+                }
                 sourceHtmlgArray.forEach(function(ele){
                     if(index !== 0){
-                        // splitIndex += 1;
-                        console.log("\t\t" + options.bindname + ": " + sourceHtmlgArray[index].split("}}")[0].split(".")[1]);
-                        // console.log("splitIndex: " + splitIndex);
-                        //fs.writeFileSync(options.dest+filename.replace(".html", "_" + splitIndex + ".html"), sourceHtmlgArray[index], 'utf-8');
+                        var tempBnd = sourceHtmlgArray[index].split("}}")[0].split(".")[1];
+                        var tempBndVal = tempBnd.replace(/([A-Z])/g, " $1").charAt(0).toUpperCase() + tempBnd.replace(/([A-Z])/g, " $1").slice(1);
+                        bindings[filename.split(".")[0]].keys.push(tempBnd + ": " + tempBndVal);
                     }
                     index += 1;
                 })
-                console.log('\x1b[36m\t%s\x1b[0m', ']');
-                console.log('\x1b[36m\t%s\x1b[0m', '"angularhtml": ' + element);                
             }, this);
-            console.log('\x1b[36m%s\x1b[0m', '}');
-            
+            grunt.file.write(options.dest + options.bindname + ".json", JSON.stringify(bindings, null, 4));
         };
 
         console.log(); 
         switch(options.wildcard) {
-            case '*.*':       wc = ".";     walk(options.src);          break;
             case '*.html':    wc = ".html"; walk(options.src);          break;
-            case '*.js':      wc = ".js";   walk(options.src);          break;
-            case '**':        wc = ".";     walkRecursive(options.src); break;
-            case '**/*':      wc = ".";     walkRecursive(options.src); break;
+            case '*.*':       wc = ".html"; walk(options.src);          break;
+            case '**/*':      wc = ".html"; walkRecursive(options.src); break;
             case '**/*.html': wc = ".html"; walkRecursive(options.src); break;
-            case '**/*.js':   wc = ".js";   walkRecursive(options.src); break;
-            default:          wc = ".";     walk(options.src);
+            default:          console.log('\x1b[31m%s\x1b[0m', "fetch_bindings: Only html files can be processed");     abort();
         }
         console.log(); 
-        console.log('\x1b[35m%s', 'Following are the files: '); 
+        console.log('\x1b[35m%s', 'Following are the files, which are processed: '); 
         console.log(filelist);
         collectBindnames();
     });
