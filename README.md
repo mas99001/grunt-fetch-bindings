@@ -1,6 +1,6 @@
 # grunt-fetch-bindings
 
-> fetch bindings from html files and create a json containing these values along with file name and path
+> fetch bindings from ts files and create a json containing these values along with html-file-name and path
 
 ## Getting Started
 This plugin requires Grunt `~0.4.5`
@@ -26,16 +26,29 @@ In your project's Gruntfile, add a section named `fetch_bindings` to the data ob
     grunt.initConfig({
       fetch_bindings: {
           options: {
-            src: "src",
+            src: "src/app/components/",
             dest: "dist/confiles",
-            wildcard: "**/*.html",
-            handler: "contentData"
+            wildcard: "**/*.component.ts",
+            bindname: "{'cmsKey':{"
           },
           files: {
             'dest/default_options': ['src/srcfile', 'src/123'],
           }
         },
       });
+```
+
+### Assumption - ts files
+assuming the following occurence in *.component.ts files
+```js
+    super.initCms({'cmsKey': {
+                'savecartheading': 'Save Cart(default)',
+                'deviceLabel': 'Device(default)',
+                'pricingplanLabel': 'Pricing(default)',
+                'protectionLabel': 'Protection(default)',
+                'continueButton': 'Continue(default)',
+                'editSelectionsButton': 'Edit(default)'
+            }});
 ```
 
 ### Package.json
@@ -85,9 +98,9 @@ In this example, the default options are used.
       fetch_bindings: {
           options: {
             src: "src/",
-            wildcard: "*.html",
+            wildcard: "**/*.component.ts",
             dest: "dist/",
-            bindname: "contentData"
+            bindname: "{'cmsKey':{"
           },
           files: {
             'dest/default_options': ['src/srcfile', 'src/123'],
@@ -103,10 +116,10 @@ In this example, custom options are used.
     grunt.initConfig({
       fetch_bindings: {
           options: {
-            src: "src",
+            src: "src/app/components/",
             dest: "dist/confiles",
-            wildcard: "**/*.html",
-            handler: "contentData"
+            wildcard: "**/*.component.ts",
+            bindname: "{'cmsKey':{"
           },
           files: {
             'dest/default_options': ['src/srcfile', 'src/123'],

@@ -10,13 +10,13 @@ var fs = require('fs');
 module.exports = function(grunt) {
     // Please see the Grunt documentation for more information regarding task
     // creation: http://gruntjs.com/creating-tasks
-    grunt.registerMultiTask('fetch_bindings', 'fetch bindings from html files and create a json containing these values along with file name and path', function() {
+    grunt.registerMultiTask('fetch_bindings', 'fetch bindings from ts files and create a json containing these values along with html-file-name and path', function() {
         // Merge task-specific and/or target-specific options with these defaults.
         var options = this.options({
             src: "src/",
-            wildcard: "*.html",
+            wildcard: "**/*.component.ts",
             dest: "dist/",
-            bindname: "contentData"
+            bindname: "{'cmsKey':{"
         });
         var lastChar = options.dest.substr(-1);
         //add trailing forward slash in dest
@@ -80,23 +80,28 @@ module.exports = function(grunt) {
             var bindings = {};
             filelist.forEach(function(element) {
                 var filename = element.replace(/^.*[\\\/]/, '')
+                console.log('\x1b[34m%s\x1b[0m', filename);
                 var sourceHtml = fs.readFileSync(element, 'utf8');
-                var sourceHtmlgArray = sourceHtml.split(options.bindname);
-                var index = 0;
+                sourceHtml = sourceHtml.replace(/\s/g, "");
+                var sourceHtmlgArray; 
+                if (sourceHtml.includes(options.bindname)){
+                    sourceHtmlgArray = sourceHtml.split(options.bindname)[1].split("}}")[0].split(",");
+                }
+                else{
+                    return;
+                }
                 bindings[filename.split(".")[0]]={
                     "keys": [],
-                    "angularhtml": element
+                    "angularhtml": element.replace(".ts",".html")
                 }
+                console.log('\x1b[34m%s\x1b[0m', sourceHtmlgArray);
                 sourceHtmlgArray.forEach(function(ele){
-                    if(index !== 0){
-                        var tempBnd = sourceHtmlgArray[index].split("}}")[0].split(".")[1];
-                        var tempBndVal = tempBnd.replace(/([A-Z])/g, " $1").charAt(0).toUpperCase() + tempBnd.replace(/([A-Z])/g, " $1").slice(1);
-                        bindings[filename.split(".")[0]].keys.push(tempBnd + ": " + tempBndVal);
-                    }
-                    index += 1;
+                    var tempBnd = ele.split(":")[0].trim().replace(/'/g, '');
+                    var tempBndVal = ele.split(":")[1].trim().replace(/'/g, '');
+                    bindings[filename.split(".")[0]].keys.push(tempBnd + ": " + tempBndVal);
                 })
             }, this);
-            grunt.file.write(options.dest + options.bindname + ".json", JSON.stringify(bindings, null, 4));
+            grunt.file.write(options.dest + "contentDataNew.json", JSON.stringify(bindings, null, 4));
         };
 
         console.log(); 
@@ -105,6 +110,7 @@ module.exports = function(grunt) {
             case '*.*':       wc = ".html"; walk(options.src);          break;
             case '**/*':      wc = ".html"; walkRecursive(options.src); break;
             case '**/*.html': wc = ".html"; walkRecursive(options.src); break;
+            case '**/*.component.ts': wc = ".component.ts"; walkRecursive(options.src); break;
             default:          console.log('\x1b[31m%s\x1b[0m', "fetch_bindings: Only html files can be processed");     abort();
         }
         console.log(); 

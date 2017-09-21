@@ -1,6 +1,6 @@
 {
   "name": "grunt-fetch-bindings",
-  "description": "fetch bindings from html files and create a json containing these values along with file name and path",
+  "description": "fetch bindings from ts files and create a json containing these values along with html-file-name and path",
   "version": "1.0.0",
   "homepage": "https://github.com/mas99001/grunt-fetch-bindings",
   "author": {
