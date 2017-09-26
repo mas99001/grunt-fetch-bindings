@@ -7,6 +7,7 @@
  */
 'use strict';
 var fs = require('fs');
+var path = require('path');
 module.exports = function(grunt) {
     // Please see the Grunt documentation for more information regarding task
     // creation: http://gruntjs.com/creating-tasks
@@ -16,6 +17,8 @@ module.exports = function(grunt) {
             src: "src/",
             wildcard: "**/*.component.ts",
             dest: "dist/",
+            baseURL: "ui/idp/",
+            outputfile: "config/selectorList.json",
             bindname: "{'cmsKey':{"
         });
         var lastChar = options.dest.substr(-1);
@@ -23,6 +26,12 @@ module.exports = function(grunt) {
         if (lastChar != '/') {
             options.dest = options.dest + '/';
         }
+        lastChar = options.baseURL.substr(-1);
+        //add trailing forward slash in dest
+        if (lastChar != '/') {
+            options.baseURL = options.baseURL + '/';
+        }
+        options.dest = options.dest + options.baseURL;
         //no trailing forward slash in src
         lastChar = options.src.substr(-1);
         if (lastChar == '/') {
@@ -30,8 +39,10 @@ module.exports = function(grunt) {
         }
         console.log(); 
         console.log('\x1b[36m%s\x1b[0m', 'Source Folder:= ' + options.src);
-        console.log('\x1b[36m%s\x1b[0m', 'Destination Folder:= ' + options.dest);
         console.log('\x1b[36m%s\x1b[0m', 'Files filter:= ' + options.wildcard);
+        console.log('\x1b[36m%s\x1b[0m', 'Destination Folder:= ' + options.dest);
+        console.log('\x1b[36m%s\x1b[0m', 'Base URL:= ' + options.baseURL);
+        console.log('\x1b[36m%s\x1b[0m', 'Output file name:= ' + options.outputfile);
         console.log('\x1b[36m%s\x1b[0m', 'Binding name:= ' + options.bindname);
         var wc = ".";
         var filelist = [];
@@ -73,6 +84,25 @@ module.exports = function(grunt) {
                     fs.mkdirSync(pEle);
             });
         }
+        
+        var getTemplateURL = function(filepath) {
+            console.log('\x1b[31m%s\x1b[0m', filepath);
+            var dir = path.dirname(filepath);
+            console.log('\x1b[31m%s\x1b[0m', dir);
+            var files = fs.readdirSync(dir);
+            var fileR = "";
+            files.forEach(function(file) {
+                if (fs.statSync(dir + '/' + file).isDirectory()) {
+                }
+                else { 
+                  if (file.includes(".html")){
+                        console.log('\x1b[31m%s\x1b[0m', file);
+                        fileR = file;
+                    }
+                }
+            });
+            return fileR;
+        };
 
         var collectBindnames = function() {
             if(!fs.existsSync(options.dest))
@@ -80,28 +110,54 @@ module.exports = function(grunt) {
             var bindings = {};
             filelist.forEach(function(element) {
                 var filename = element.replace(/^.*[\\\/]/, '')
-                console.log('\x1b[34m%s\x1b[0m', filename);
+                //console.log('\x1b[34m%s\x1b[0m', filename);
                 var sourceHtml = fs.readFileSync(element, 'utf8');
+
+                var compName;
                 sourceHtml = sourceHtml.replace(/\s/g, "");
+                
+                var templateURL;
+
                 var sourceHtmlgArray; 
                 if (sourceHtml.includes(options.bindname)){
+                    try {
+                        compName = sourceHtml.split("export class ")[1];
+                        compName = compName.split(" extends")[0];
+                        compName = compName.replace("Component","").replace("component","");
+                        compName = compName.charAt(0).toLowerCase() + compName.slice(1);
+                    } catch (error) {
+                        compName = filename.split(".")[0];
+                        compName = compName.charAt(0).toLowerCase() + compName.slice(1);
+                    }
+
+                    try {
+                        templateURL = sourceHtml.split("@Component({")[1];
+                        templateURL = templateURL.split(")}")[0];
+                        templateURL = templateURL.split("templateUrl:")[1];
+                        templateURL = templateURL.split(",")[0].replace("'","");
+                        console.log('\x1b[31m%s\x1b[0m', templateURL);
+                        templateURL = path.basename(templateURL);
+                        console.log('\x1b[31m%s\x1b[0m', templateURL);                            
+                    } catch (error) {
+                        templateURL = path.basename(element.replace(".ts",".html"));
+                    }
                     sourceHtmlgArray = sourceHtml.split(options.bindname)[1].split("}}")[0].split(",");
                 }
                 else{
                     return;
                 }
-                bindings[filename.split(".")[0]]={
+                bindings[compName]={
                     "keys": [],
-                    "angularhtml": element.replace(".ts",".html")
+                    "angularhtml": options.baseURL + 'template/' + templateURL
                 }
-                console.log('\x1b[34m%s\x1b[0m', sourceHtmlgArray);
+                //console.log('\x1b[34m%s\x1b[0m', sourceHtmlgArray);
                 sourceHtmlgArray.forEach(function(ele){
                     var tempBnd = ele.split(":")[0].trim().replace(/'/g, '');
                     var tempBndVal = ele.split(":")[1].trim().replace(/'/g, '');
                     bindings[filename.split(".")[0]].keys.push(tempBnd + ": " + tempBndVal);
                 })
             }, this);
-            grunt.file.write(options.dest + "contentDataNew.json", JSON.stringify(bindings, null, 4));
+            grunt.file.write(options.dest + options.outputfile, JSON.stringify(bindings, null, 4));
         };
 
         console.log(); 

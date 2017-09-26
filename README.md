@@ -26,10 +26,12 @@ In your project's Gruntfile, add a section named `fetch_bindings` to the data ob
     grunt.initConfig({
       fetch_bindings: {
           options: {
-            src: "src/app/components/",
-            dest: "dist/confiles",
+            src: "src/",
             wildcard: "**/*.component.ts",
-            bindname: "{'cmsKey':{"
+            dest: "dist/",
+            baseURL: "ui/idp/",
+            outputfile: "config/selectorList.json",
+            bindname: "{'cmsKey':{"            
           },
           files: {
             'dest/default_options': ['src/srcfile', 'src/123'],
@@ -60,7 +62,7 @@ assuming the following occurence in *.component.ts files
   "dependencies": {},
   "devDependencies": {
     "grunt": "~0.4.2",
-    "grunt-fetch-bindings": "^0.1.0"
+    "grunt-fetch-bindings": "^1.2.0"
   },
   "engines": {
     "node": ">=0.8.0"
@@ -100,7 +102,9 @@ In this example, the default options are used.
             src: "src/",
             wildcard: "**/*.component.ts",
             dest: "dist/",
-            bindname: "{'cmsKey':{"
+            baseURL: "ui/idp/",
+            outputfile: "config/selectorList.json",
+            bindname: "{'cmsKey':{"            
           },
           files: {
             'dest/default_options': ['src/srcfile', 'src/123'],
@@ -117,9 +121,11 @@ In this example, custom options are used.
       fetch_bindings: {
           options: {
             src: "src/app/components/",
-            dest: "dist/confiles",
             wildcard: "**/*.component.ts",
-            bindname: "{'cmsKey':{"
+            dest: "dist/",
+            baseURL: "ui/idp/",
+            outputfile: "config/selectorList.json",
+            bindname: "{'cmsKey':{"            
           },
           files: {
             'dest/default_options': ['src/srcfile', 'src/123'],
