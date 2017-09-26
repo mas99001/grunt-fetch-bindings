@@ -86,9 +86,7 @@ module.exports = function(grunt) {
         }
         
         var getTemplateURL = function(filepath) {
-            console.log('\x1b[31m%s\x1b[0m', filepath);
             var dir = path.dirname(filepath);
-            console.log('\x1b[31m%s\x1b[0m', dir);
             var files = fs.readdirSync(dir);
             var fileR = "";
             files.forEach(function(file) {
@@ -109,37 +107,34 @@ module.exports = function(grunt) {
                 lCreateDirs(options.dest.slice(0, -1));
             var bindings = {};
             filelist.forEach(function(element) {
-                var filename = element.replace(/^.*[\\\/]/, '')
-                //console.log('\x1b[34m%s\x1b[0m', filename);
+                var filename = element.replace(/^.*[\\\/]/, '');
+                var copyCWD = element.split(filename)[0];
+                var copyFileName;
                 var sourceHtml = fs.readFileSync(element, 'utf8');
-
-                var compName;
-                sourceHtml = sourceHtml.replace(/\s/g, "");
-                
+                var compName = sourceHtml;               
                 var templateURL;
-
                 var sourceHtmlgArray; 
+                sourceHtml = sourceHtml.replace(/\s/g, "");
                 if (sourceHtml.includes(options.bindname)){
                     try {
-                        compName = sourceHtml.split("export class ")[1];
+                        compName = compName.split("export class ")[1];
                         compName = compName.split(" extends")[0];
                         compName = compName.replace("Component","").replace("component","");
                         compName = compName.charAt(0).toLowerCase() + compName.slice(1);
                     } catch (error) {
-                        compName = filename.split(".")[0];
-                        compName = compName.charAt(0).toLowerCase() + compName.slice(1);
+                        compName = "ERROR";
                     }
 
                     try {
                         templateURL = sourceHtml.split("@Component({")[1];
                         templateURL = templateURL.split(")}")[0];
                         templateURL = templateURL.split("templateUrl:")[1];
-                        templateURL = templateURL.split(",")[0].replace("'","");
-                        console.log('\x1b[31m%s\x1b[0m', templateURL);
+                        templateURL = templateURL.split(",")[0].replace(/'/g,'');;
                         templateURL = path.basename(templateURL);
-                        console.log('\x1b[31m%s\x1b[0m', templateURL);                            
+                        copyFileName = templateURL;
+                        templateURL = options.baseURL + 'template/' + templateURL;                           
                     } catch (error) {
-                        templateURL = path.basename(element.replace(".ts",".html"));
+                        templateURL = "";;
                     }
                     sourceHtmlgArray = sourceHtml.split(options.bindname)[1].split("}}")[0].split(",");
                 }
@@ -148,13 +143,17 @@ module.exports = function(grunt) {
                 }
                 bindings[compName]={
                     "keys": [],
-                    "angularhtml": options.baseURL + 'template/' + templateURL
+                    "angularhtml": templateURL
                 }
-                //console.log('\x1b[34m%s\x1b[0m', sourceHtmlgArray);
+                if(templateURL !== ""){
+                    if(!fs.existsSync(options.dest + 'template/'))                  
+                        lCreateDirs(options.dest + 'template/');                        
+                    fs.writeFileSync(options.dest + 'template/' + copyFileName, fs.readFileSync(copyCWD+copyFileName));
+                }
                 sourceHtmlgArray.forEach(function(ele){
                     var tempBnd = ele.split(":")[0].trim().replace(/'/g, '');
                     var tempBndVal = ele.split(":")[1].trim().replace(/'/g, '');
-                    bindings[filename.split(".")[0]].keys.push(tempBnd + ": " + tempBndVal);
+                    bindings[compName].keys.push(tempBnd + ": " + tempBndVal);
                 })
             }, this);
             grunt.file.write(options.dest + options.outputfile, JSON.stringify(bindings, null, 4));
