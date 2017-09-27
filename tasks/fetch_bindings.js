@@ -48,7 +48,6 @@ module.exports = function(grunt) {
         var filelist = [];
 
         var walk = function(dir) {
-            console.log("Begining WALK with : " + dir);
             var files = fs.readdirSync(dir);
             files.forEach(function(file) {
                 if (fs.statSync(dir + '/' + file).isDirectory()) {}
@@ -60,7 +59,6 @@ module.exports = function(grunt) {
         };
 
         var walkRecursive = function(dir) {
-          console.log('\x1b[34m%s\x1b[0m', "Begining WALKRecursive with : " + dir);
             var files = fs.readdirSync(dir);
             files.forEach(function(file) {
                 if (fs.statSync(dir + '/' + file).isDirectory()) {
@@ -151,9 +149,15 @@ module.exports = function(grunt) {
                     fs.writeFileSync(options.dest + 'template/' + copyFileName, fs.readFileSync(copyCWD+copyFileName));
                 }
                 sourceHtmlgArray.forEach(function(ele){
-                    var tempBnd = ele.split(":")[0].trim().replace(/'/g, '');
-                    var tempBndVal = ele.split(":")[1].trim().replace(/'/g, '');
-                    bindings[compName].keys.push(tempBnd + ": " + tempBndVal);
+                    var elearray = ele.split(":");
+                    var constructedkey = "";
+                    elearray.forEach(function(element){
+                        if(constructedkey !== ""){
+                                constructedkey += ": ";
+                        }
+                        constructedkey += element.trim().replace(/'/g, '');
+                    });
+                    bindings[compName].keys.push(constructedkey);
                 })
             }, this);
             grunt.file.write(options.dest + options.outputfile, JSON.stringify(bindings, null, 4));
