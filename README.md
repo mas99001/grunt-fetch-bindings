@@ -31,7 +31,7 @@ In your project's Gruntfile, add a section named `fetch_bindings` to the data ob
             dest: "dist/",
             baseURL: "ui/idp/",
             outputfile: "config/selectorList.json",
-            bindname: "{'cmsKey':{"            
+            bindname: "'cmsKey'"            
           },
           files: {
             'dest/default_options': ['src/srcfile', 'src/123'],
@@ -104,7 +104,7 @@ In this example, the default options are used.
             dest: "dist/",
             baseURL: "ui/idp/",
             outputfile: "config/selectorList.json",
-            bindname: "{'cmsKey':{"            
+            bindname: "'cmsKey'"            
           },
           files: {
             'dest/default_options': ['src/srcfile', 'src/123'],
@@ -125,7 +125,7 @@ In this example, custom options are used.
             dest: "dist/",
             baseURL: "ui/idp/",
             outputfile: "config/selectorList.json",
-            bindname: "{'cmsKey':{"            
+            bindname: "'cmsKey'"            
           },
           files: {
             'dest/default_options': ['src/srcfile', 'src/123'],

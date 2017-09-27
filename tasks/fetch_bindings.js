@@ -19,7 +19,7 @@ module.exports = function(grunt) {
             dest: "dist/",
             baseURL: "ui/idp/",
             outputfile: "config/selectorList.json",
-            bindname: "{'cmsKey':{"
+            bindname: "'cmsKey'"            
         });
         var lastChar = options.dest.substr(-1);
         //add trailing forward slash in dest
@@ -111,7 +111,8 @@ module.exports = function(grunt) {
                 var sourceHtml = fs.readFileSync(element, 'utf8');
                 var compName = sourceHtml;               
                 var templateURL;
-                var sourceHtmlgArray; 
+                var sourceHtmlgArray;
+                var sourceHtmlCopy = sourceHtml; 
                 sourceHtml = sourceHtml.replace(/\s/g, "");
                 if (sourceHtml.includes(options.bindname)){
                     try {
@@ -134,7 +135,10 @@ module.exports = function(grunt) {
                     } catch (error) {
                         templateURL = "";;
                     }
-                    sourceHtmlgArray = sourceHtml.split(options.bindname)[1].split("}}")[0].split(",");
+                    sourceHtmlCopy = sourceHtmlCopy.split(options.bindname)[1].split("}")[0].split("{")[1];
+                    sourceHtmlCopy = sourceHtmlCopy.replace(/\r?\n|\r/g, "");
+                    sourceHtmlCopy = sourceHtmlCopy.replace(/\t+/g, "");
+                    sourceHtmlgArray = sourceHtmlCopy.split(",");
                 }
                 else{
                     return;
